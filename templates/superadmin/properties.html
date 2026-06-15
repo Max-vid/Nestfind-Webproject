@@ -1,0 +1,41 @@
+{% extends 'superadmin/base.html' %}
+{% block title %}Manage Properties{% endblock %}
+{% block sa_content %}
+<h1 class="sa-title">Manage Properties</h1>
+<div class="sa-filter-bar">
+  <a href="?filter=all" {% if filter_by=='all' %}class="on"{% endif %}>All</a>
+  <a href="?filter=active" {% if filter_by=='active' %}class="on"{% endif %}>Active</a>
+  <a href="?filter=hidden" {% if filter_by=='hidden' %}class="on"{% endif %}>Hidden</a>
+  <a href="?filter=unverified" {% if filter_by=='unverified' %}class="on"{% endif %}>Unverified</a>
+</div>
+<div class="sa-table-wrap">
+  <table><thead><tr><th>Title</th><th>Owner</th><th>City</th><th>Price</th><th>Status</th><th>Actions</th></tr></thead>
+  <tbody>{% for p in properties %}
+  <tr>
+    <td><a href="/property/{{ p.id }}" style="color:#5dade2">{{ p.title[:35] }}</a></td>
+    <td>{{ p.owner.name }}</td><td>{{ p.city }}</td>
+    <td style="color:rgba(255,255,255,0.7)">₹{{ "{:,.0f}".format(p.price) }}</td>
+    <td>
+      {% if p.is_hidden %}<span class="sa-badge y">Hidden</span>
+      {% elif p.is_active %}<span class="sa-badge g">Active</span>
+      {% else %}<span class="sa-badge r">Inactive</span>{% endif %}
+      {% if p.is_verified %}<span class="sa-badge b">Verified</span>{% else %}<span class="sa-badge y">Unverified</span>{% endif %}
+    </td>
+    <td>
+      <div class="action-btns">
+        <form method="POST" action="/superadmin/property/hide/{{ p.id }}" style="display:inline">
+          <button type="submit" class="sa-btn-hide">{{ '👁️ Show' if p.is_hidden else '🙈 Hide' }}</button>
+        </form>
+        {% if not p.is_verified %}
+        <form method="POST" action="/superadmin/property/verify/{{ p.id }}" style="display:inline">
+          <button type="submit" class="sa-btn-verify">✓ Verify</button>
+        </form>{% endif %}
+        <form method="POST" action="/superadmin/property/remove/{{ p.id }}" style="display:inline">
+          <button type="submit" class="sa-btn-remove" onclick="return confirm('Remove this property permanently?')">🗑️ Remove</button>
+        </form>
+      </div>
+    </td>
+  </tr>
+  {% endfor %}</tbody></table>
+</div>
+{% endblock %}

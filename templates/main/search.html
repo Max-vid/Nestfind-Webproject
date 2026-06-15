@@ -1,0 +1,242 @@
+{% extends 'base.html' %}
+{% block title %}Search Rentals — NestFind{% endblock %}
+{% block content %}
+
+<!-- TOP FILTER BAR (HORIZONTAL) -->
+<div class="search-topbar">
+  <div class="container">
+    <form method="GET" action="/search" id="filterForm">
+      <div class="filter-bar-inner">
+
+        <div class="fb-field">
+          <label><i class="fas fa-map-marker-alt"></i> City</label>
+          <select name="city" class="fb-select" id="citySelect" onchange="updateAreas()">
+            <option value="">All Cities</option>
+            {% for c in cities %}<option value="{{ c }}" {% if filters.get('city')==c %}selected{% endif %}>{{ c }}</option>{% endfor %}
+          </select>
+        </div>
+
+        <div class="fb-divider"></div>
+
+        <div class="fb-field" id="areaField">
+          <label><i class="fas fa-location-arrow"></i> Area</label>
+          <select name="area" class="fb-select" id="areaSelect">
+            <option value="">All Areas</option>
+            {% if filters.get('city') and city_areas.get(filters.get('city')) %}
+              {% for a in city_areas.get(filters.get('city'), []) %}
+              <option value="{{ a }}" {% if filters.get('area')==a %}selected{% endif %}>{{ a }}</option>
+              {% endfor %}
+            {% endif %}
+          </select>
+        </div>
+
+        <div class="fb-divider"></div>
+
+        <div class="fb-field">
+          <label><i class="fas fa-bed"></i> BHK</label>
+          <select name="bhk" class="fb-select">
+            <option value="">Any</option>
+            {% for b in [1,2,3,4] %}<option value="{{ b }}" {% if filters.get('bhk')==b|string %}selected{% endif %}>{{ b }} BHK</option>{% endfor %}
+          </select>
+        </div>
+
+        <div class="fb-divider"></div>
+
+        <div class="fb-field">
+          <label><i class="fas fa-rupee-sign"></i> Min Price</label>
+          <input type="number" name="min_price" class="fb-input" placeholder="₹ Min" value="{{ filters.get('min_price','') }}">
+        </div>
+
+        <div class="fb-field">
+          <label><i class="fas fa-rupee-sign"></i> Max Price</label>
+          <input type="number" name="max_price" class="fb-input" placeholder="₹ Max" value="{{ filters.get('max_price','') }}">
+        </div>
+
+        <div class="fb-divider"></div>
+
+        <div class="fb-field">
+          <label><i class="fas fa-building"></i> Type</label>
+          <select name="property_type" class="fb-select">
+            <option value="">Any Type</option>
+            {% for t in ['apartment','villa','room','pg'] %}<option value="{{ t }}" {% if filters.get('property_type')==t %}selected{% endif %}>{{ t|capitalize }}</option>{% endfor %}
+          </select>
+        </div>
+
+        <div class="fb-divider"></div>
+
+        <div class="fb-field">
+          <label><i class="fas fa-couch"></i> Furnishing</label>
+          <select name="furnishing" class="fb-select">
+            <option value="">Any</option>
+            {% for f in ['furnished','semi','unfurnished'] %}<option value="{{ f }}" {% if filters.get('furnishing')==f %}selected{% endif %}>{{ f|capitalize }}</option>{% endfor %}
+          </select>
+        </div>
+
+        <div class="fb-actions">
+          <button type="submit" class="fb-search-btn"><i class="fas fa-search"></i> Search</button>
+          <button type="button" class="fb-clear-btn" onclick="clearFilters()" title="Clear all filters"><i class="fas fa-times"></i></button>
+        </div>
+      </div>
+
+      <!-- AMENITIES ROW -->
+      <div class="amenities-row">
+        <span class="amenities-label">Amenities:</span>
+        {% for am in ['balcony','parking','gym','wifi','ac','lift','security','swimming_pool','power_backup'] %}
+        <label class="amenity-toggle {% if am in (filters.getlist('amenities') if filters else []) %}selected{% endif %}">
+          <input type="checkbox" name="amenities" value="{{ am }}" {% if am in (filters.getlist('amenities') if filters else []) %}checked{% endif %}>
+          {{ am|replace('_',' ')|title }}
+        </label>
+        {% endfor %}
+        <div class="sort-wrap">
+          <select name="sort_by" class="fb-select sort-select">
+            <option value="newest" {% if filters.get('sort_by','newest')=='newest' %}selected{% endif %}>Newest</option>
+            <option value="price_asc" {% if filters.get('sort_by')=='price_asc' %}selected{% endif %}>Price ↑</option>
+            <option value="price_desc" {% if filters.get('sort_by')=='price_desc' %}selected{% endif %}>Price ↓</option>
+          </select>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- RESULTS AREA -->
+<div class="container search-results-wrap">
+
+  {% if not searched %}
+  <!-- INITIAL STATE -->
+  <div class="search-landing">
+    <div class="sl-icon">🏠</div>
+    <h2>Find Your Perfect Rental</h2>
+    <p>Use the filters above to search from owner-listed properties.<br>Only real, verified listings appear here.</p>
+    <div class="sl-hints">
+      <span>Try: <a href="/search?city=Pune">Pune</a></span>
+      <span>Try: <a href="/search?bhk=2">2 BHK</a></span>
+      <span>Try: <a href="/search?max_price=15000">Under ₹15,000</a></span>
+    </div>
+  </div>
+
+  {% else %}
+
+  <!-- AI RECOMMENDATIONS -->
+  {% if recommendations %}
+  <div class="ai-reco-strip">
+    <div class="ars-label"><span class="ai-pill">⭐ Top Picks</span> Best matches for your preferences</div>
+    <div class="ars-cards">
+      {% for p in recommendations %}
+      <a href="/property/{{ p.id }}" class="ars-card">
+        {% if p.images %}<img src="{{ p.images[0].url }}" alt="{{ p.title }}">
+        {% else %}<div class="ars-ph">🏠</div>{% endif %}
+        <div class="ars-info">
+          <div class="ars-price">₹{{ "{:,.0f}".format(p.price) }}/mo</div>
+          <div class="ars-title">{{ p.title[:28] }}</div>
+          <div class="ars-city">{{ p.city }} · {{ p.bhk }} BHK</div>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- RESULTS COUNT -->
+  <div class="results-meta">
+    <span class="results-count">
+      {% if properties %}
+        <strong>{{ properties|length }}</strong> propert{{ 'y' if properties|length==1 else 'ies' }} found
+      {% else %}
+        No properties found
+      {% endif %}
+    </span>
+    {% if properties %}
+    <span class="results-hint">Showing owner-listed, verified properties only</span>
+    {% endif %}
+  </div>
+
+  {% if properties %}
+  <div class="cards-grid">
+    {% for p in properties %}
+    <a href="/property/{{ p.id }}" class="prop-card">
+      <div class="pc-img">
+        {% if p.images %}<img src="{{ p.images[0].url }}" alt="{{ p.title }}">
+        {% else %}<div class="pc-img-ph">🏠</div>{% endif %}
+        {% if p.is_verified %}<span class="pc-verified">✓</span>{% endif %}
+      </div>
+      <div class="pc-body">
+        <div class="pc-price">₹{{ "{:,.0f}".format(p.price) }}<span>/mo</span></div>
+        <h3>{{ p.title }}</h3>
+        <div class="pc-loc"><i class="fas fa-map-marker-alt"></i> {{ p.location }}, {{ p.city }}{% if p.area %} · {{ p.area }}{% endif %}</div>
+        <div class="pc-tags">
+          <span>{{ p.bhk }} BHK</span>
+          {% if p.property_type %}<span>{{ p.property_type|capitalize }}</span>{% endif %}
+          {% if p.furnishing %}<span>{{ p.furnishing|capitalize }}</span>{% endif %}
+          {% if p.area_sqft %}<span>{{ p.area_sqft|int }} sqft</span>{% endif %}
+        </div>
+        <div class="pc-chips">
+          {% if p.wifi %}<span title="WiFi"><i class="fas fa-wifi"></i></span>{% endif %}
+          {% if p.parking %}<span title="Parking"><i class="fas fa-car"></i></span>{% endif %}
+          {% if p.ac %}<span title="AC"><i class="fas fa-snowflake"></i></span>{% endif %}
+          {% if p.gym %}<span title="Gym"><i class="fas fa-dumbbell"></i></span>{% endif %}
+          {% if p.security %}<span title="Security"><i class="fas fa-shield-alt"></i></span>{% endif %}
+          {% if p.balcony %}<span title="Balcony"><i class="fas fa-door-open"></i></span>{% endif %}
+        </div>
+      </div>
+      <div class="pc-footer">
+        <div class="pc-rating">
+          {% for i in range(p.avg_rating|int) %}<i class="fas fa-star"></i>{% endfor %}
+          <span>({{ p.review_count }})</span>
+        </div>
+        <div style="display:flex;gap:.5rem;align-items:center;">
+          {% if current_user.is_authenticated and current_user.role=='tenant' %}
+          <button class="wl-heart" onclick="event.preventDefault();toggleWL({{ p.id }},this)" title="Save"><i class="fas fa-heart"></i></button>
+          {% endif %}
+          <span class="pc-btn">View</span>
+        </div>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+
+  {% else %}
+  <div class="no-results">
+    <div class="nr-icon">🔍</div>
+    <h3>No properties match your filters</h3>
+    <p>Try adjusting your search or <button class="link-btn" onclick="clearFilters()">clear all filters</button></p>
+  </div>
+  {% endif %}
+
+  {% endif %}
+</div>
+
+<script>
+const cityAreas = {{ city_areas | tojson }};
+
+function updateAreas() {
+  const city = document.getElementById('citySelect').value;
+  const sel = document.getElementById('areaSelect');
+  sel.innerHTML = '<option value="">All Areas</option>';
+  if (city && cityAreas[city]) {
+    cityAreas[city].forEach(a => {
+      const opt = document.createElement('option');
+      opt.value = a; opt.textContent = a;
+      sel.appendChild(opt);
+    });
+    document.getElementById('areaField').style.display = '';
+  }
+}
+
+function clearFilters() {
+  window.location.href = '/search';
+}
+function toggleWL(id, btn) {
+  fetch('/wishlist/toggle/' + id, {method:'POST'})
+    .then(r => r.json())
+    .then(d => {
+      btn.classList.toggle('active', d.status === 'added');
+    });
+}
+document.querySelectorAll('.amenity-toggle input').forEach(cb => {
+  cb.addEventListener('change', function() {
+    this.closest('.amenity-toggle').classList.toggle('selected', this.checked);
+  });
+});
+</script>
+{% endblock %}

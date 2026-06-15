@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block title %}Login — NestFind{% endblock %}
+{% block content %}
+<div class="auth-wrap">
+  <div class="auth-card">
+    <div class="auth-logo"><div class="brand-mark">N</div><span class="brand-name">NestFind</span></div>
+    <h2>Welcome Back</h2>
+    <p class="auth-sub">Sign in to your account</p>
+    <form method="POST" class="auth-form">
+      <div class="fg"><label>Email</label>
+        <div class="input-icon"><i class="fas fa-envelope"></i>
+          <input type="email" name="email" placeholder="you@example.com" required autocomplete="email">
+        </div>
+      </div>
+      <div class="fg"><label>Password</label>
+        <div class="input-icon"><i class="fas fa-lock"></i>
+          <input type="password" name="password" placeholder="••••••••" required>
+        </div>
+      </div>
+      <button type="submit" class="auth-submit">Sign In</button>
+    </form>
+    <p class="auth-switch">New to NestFind? <a href="/register">Create account</a></p>
+  </div>
+</div>
+{% endblock %}

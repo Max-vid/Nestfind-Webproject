@@ -1,0 +1,35 @@
+{% extends 'admin/base.html' %}
+{% block title %}Admin Dashboard{% endblock %}
+{% block admin_content %}
+<h1 class="admin-title">Dashboard</h1>
+<div class="stat-row">
+  <div class="stat-card"><div class="sc-n">{{ stats.total_users }}</div><div class="sc-l">Users</div></div>
+  <div class="stat-card blue"><div class="sc-n">{{ stats.active_properties }}</div><div class="sc-l">Active Props</div></div>
+  <div class="stat-card orange"><div class="sc-n">{{ stats.pending_verification }}</div><div class="sc-l">Pending</div></div>
+  <div class="stat-card accent"><div class="sc-n">{{ stats.total_reviews }}</div><div class="sc-l">Reviews</div></div>
+</div>
+<div class="two-col-layout">
+  <div>
+    <h2 class="panel-top-title">Pending Verification</h2>
+    <div class="data-panel">
+      {% if pending_props %}{% for p in pending_props %}
+      <div class="data-row">
+        <div class="dr-info"><div class="dr-title">{{ p.title }}</div><div class="dr-meta">{{ p.city }} · ₹{{ "{:,.0f}".format(p.price) }} · {{ p.owner.name }}</div></div>
+        <form method="POST" action="/admin/property/verify/{{ p.id }}"><button type="submit" class="btn-primary btn-sm">Verify</button></form>
+      </div>
+      {% endfor %}{% else %}<div class="empty-panel">✅ All verified!</div>{% endif %}
+    </div>
+  </div>
+  <div>
+    <h2 class="panel-top-title">Recent Users</h2>
+    <div class="data-panel">
+      {% for u in recent_users %}
+      <div class="data-row">
+        <div class="dr-info"><div class="dr-title">{{ u.name }}</div><div class="dr-meta">{{ u.email }}</div></div>
+        <span class="badge {{ 'blue' if u.role=='owner' else 'green' }}">{{ u.role|capitalize }}</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

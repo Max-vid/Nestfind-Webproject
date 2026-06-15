@@ -1,0 +1,35 @@
+{% extends 'superadmin/base.html' %}
+{% block title %}Manage Users{% endblock %}
+{% block sa_content %}
+<h1 class="sa-title">Manage Users</h1>
+<div class="sa-filter-bar">
+  <a href="/superadmin/users" {% if not role_filter %}class="on"{% endif %}>All</a>
+  <a href="?role=tenant" {% if role_filter=='tenant' %}class="on"{% endif %}>Tenants</a>
+  <a href="?role=owner" {% if role_filter=='owner' %}class="on"{% endif %}>Owners</a>
+  <a href="?role=admin" {% if role_filter=='admin' %}class="on"{% endif %}>Admins</a>
+</div>
+<div class="sa-table-wrap">
+  <table><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Joined</th><th>Status</th><th>Actions</th></tr></thead>
+  <tbody>{% for u in users %}
+  <tr>
+    <td><strong>{{ u.name }}</strong></td>
+    <td style="color:rgba(255,255,255,0.5)">{{ u.email }}</td>
+    <td><span class="sa-badge {{ 'b' if u.role=='owner' else 'g' if u.role=='tenant' else 'y' }}">{{ u.role|capitalize }}</span></td>
+    <td style="color:rgba(255,255,255,0.5);font-size:.8rem">{{ u.created_at.strftime('%d %b %Y') }}</td>
+    <td>{% if u.is_blocked %}<span class="sa-badge r">Blocked</span>{% else %}<span class="sa-badge g">Active</span>{% endif %}</td>
+    <td>
+      <div class="action-btns">
+        <form method="POST" action="/superadmin/user/block/{{ u.id }}" style="display:inline">
+          <button type="submit" class="{% if u.is_blocked %}sa-btn-unblock{% else %}sa-btn-block{% endif %}" onclick="return confirm('{{ 'Unblock' if u.is_blocked else 'Block' }} this user?')">
+            {{ '🔓 Unblock' if u.is_blocked else '🚫 Block' }}
+          </button>
+        </form>
+        <form method="POST" action="/superadmin/user/delete/{{ u.id }}" style="display:inline">
+          <button type="submit" class="sa-btn-remove" onclick="return confirm('Remove user and hide all their properties?')">🗑️ Remove</button>
+        </form>
+      </div>
+    </td>
+  </tr>
+  {% endfor %}</tbody></table>
+</div>
+{% endblock %}

@@ -1,0 +1,20 @@
+{% extends 'admin/base.html' %}
+{% block title %}Analytics{% endblock %}
+{% block extra_css %}<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>{% endblock %}
+{% block admin_content %}
+<h1 class="admin-title">Analytics</h1>
+<div class="charts-grid">
+  <div class="chart-card"><h3>Price Distribution</h3><canvas id="c1" height="220"></canvas></div>
+  <div class="chart-card"><h3>BHK Distribution</h3><canvas id="c2" height="220"></canvas></div>
+  <div class="chart-card"><h3>Top Cities</h3><canvas id="c3" height="220"></canvas></div>
+  <div class="chart-card"><h3>Summary</h3>
+    <div class="stat-card"><div class="sc-n">{{ total_props }}</div><div class="sc-l">Active Props</div></div>
+    {% for b,c in price_buckets.items() %}<div class="data-row"><span>₹ {{ b }}</span><strong>{{ c }}</strong></div>{% endfor %}
+  </div>
+</div>
+<script>
+new Chart(document.getElementById('c1'),{type:'bar',data:{labels:{{ price_buckets.keys()|list|tojson }},datasets:[{data:{{ price_buckets.values()|list|tojson }},backgroundColor:'#E8743B',borderRadius:6}]},options:{plugins:{legend:{display:false}}}});
+new Chart(document.getElementById('c2'),{type:'doughnut',data:{labels:{{ bhk_dist.keys()|list|tojson }},datasets:[{data:{{ bhk_dist.values()|list|tojson }},backgroundColor:['#1B2A4A','#2E5FA3','#E8743B','#f39c12']}]}});
+new Chart(document.getElementById('c3'),{type:'bar',data:{labels:{{ top_cities|map(attribute=0)|list|tojson }},datasets:[{data:{{ top_cities|map(attribute=1)|list|tojson }},backgroundColor:'#2E5FA3',borderRadius:6}]},options:{indexAxis:'y',plugins:{legend:{display:false}}}});
+</script>
+{% endblock %}

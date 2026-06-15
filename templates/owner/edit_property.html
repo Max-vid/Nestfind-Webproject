@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block title %}Edit Property — NestFind{% endblock %}
+{% block content %}
+<div class="page-banner"><div class="container"><h1>Edit Property</h1></div></div>
+<div class="container form-container">
+  <form method="POST">
+    <div class="form-block"><h3>Basic Info</h3>
+      <div class="fg"><label>Title</label><input type="text" name="title" class="fc" value="{{ property.title }}" required></div>
+      <div class="fg"><label>Description</label><textarea name="description" class="fc" rows="3">{{ property.description }}</textarea></div>
+      <div class="form-row-2">
+        <div class="fg"><label>City</label><input type="text" name="city" class="fc" value="{{ property.city }}" required></div>
+        <div class="fg"><label>Area / Locality *</label><input type="text" name="area" class="fc" value="{{ property.area or '' }}" placeholder="e.g. Dharampeth, Sitabuldi" required><small class="form-hint">Nearby area or locality in the city</small></div>
+        <div class="fg"><label>Address</label><input type="text" name="location" class="fc" value="{{ property.location }}" required></div>
+        <div class="fg"><label>Price (₹/mo)</label><input type="number" name="price" class="fc" value="{{ property.price }}" required></div>
+        <div class="fg"><label>BHK</label><select name="bhk" class="fc">{% for b in [1,2,3,4] %}<option value="{{ b }}" {% if property.bhk==b %}selected{% endif %}>{{ b }} BHK</option>{% endfor %}</select></div>
+        <div class="fg"><label>Area (sqft)</label><input type="number" name="area_sqft" class="fc" value="{{ property.area_sqft or '' }}"></div>
+        <div class="fg"><label>Type</label><select name="property_type" class="fc">{% for t in ['apartment','villa','room','pg'] %}<option value="{{ t }}" {% if property.property_type==t %}selected{% endif %}>{{ t|capitalize }}</option>{% endfor %}</select></div>
+        <div class="fg"><label>Furnishing</label><select name="furnishing" class="fc">{% for f in ['furnished','semi','unfurnished'] %}<option value="{{ f }}" {% if property.furnishing==f %}selected{% endif %}>{{ f|capitalize }}</option>{% endfor %}</select></div>
+      </div>
+    </div>
+    {% if property.features %}
+    <div class="form-block"><h3>Amenities</h3>
+      <div class="check-grid">
+        {% for am in ['balcony','parking','lift','security','water_supply','gym','ac','wifi','power_backup'] %}
+        <label class="check-opt"><input type="checkbox" name="{{ am }}" {% if property.features[am] %}checked{% endif %}><span>{{ am|replace('_',' ')|title }}</span></label>
+        {% endfor %}
+      </div>
+      <div class="check-grid mt1">
+        <label class="check-opt"><input type="checkbox" name="family_allowed" {% if property.features.family_allowed %}checked{% endif %}><span>Family Allowed</span></label>
+        <label class="check-opt"><input type="checkbox" name="bachelor_allowed" {% if property.features.bachelor_allowed %}checked{% endif %}><span>Bachelor Allowed</span></label>
+        <label class="check-opt"><input type="checkbox" name="pets_allowed" {% if property.features.pets_allowed %}checked{% endif %}><span>Pets Allowed</span></label>
+        <label class="check-opt"><input type="checkbox" name="veg_only" {% if property.features.veg_only %}checked{% endif %}><span>Veg Only</span></label>
+      </div>
+    </div>
+    {% endif %}
+    <div style="display:flex;gap:1rem;">
+      <button type="submit" class="btn-primary">Save Changes</button>
+      <a href="/owner/dashboard" class="btn-outline">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

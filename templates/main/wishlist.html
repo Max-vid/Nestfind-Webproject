@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block title %}Saved Properties — NestFind{% endblock %}
+{% block content %}
+<div class="page-banner"><div class="container"><h1>❤️ Saved Properties</h1><p>{{ properties|length }} saved</p></div></div>
+<div class="container section">
+  {% if properties %}
+  <div class="cards-grid">
+    {% for p in properties %}
+    <div class="prop-card">
+      <a href="/property/{{ p.id }}">
+        <div class="pc-img">{% if p.images %}<img src="{{ p.images[0].url }}" alt="{{ p.title }}">{% else %}<div class="pc-img-ph">🏠</div>{% endif %}</div>
+        <div class="pc-body">
+          <div class="pc-price">₹{{ "{:,.0f}".format(p.price) }}<span>/mo</span></div>
+          <h3>{{ p.title }}</h3>
+          <div class="pc-loc"><i class="fas fa-map-marker-alt"></i> {{ p.city }}</div>
+          <div class="pc-tags"><span>{{ p.bhk }} BHK</span></div>
+        </div>
+      </a>
+      <div class="pc-footer">
+        <button class="remove-btn" onclick="removeWL({{ p.id }},this)"><i class="fas fa-heart-broken"></i> Remove</button>
+        <a href="/property/{{ p.id }}" class="pc-btn">View</a>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-hero"><div class="eh-icon">💔</div><h3>No saved properties</h3><p><a href="/search">Browse and save properties you like</a></p></div>
+  {% endif %}
+</div>
+<script>
+function removeWL(id, btn){
+  fetch('/wishlist/toggle/'+id,{method:'POST'}).then(()=>{ btn.closest('.prop-card').remove(); });
+}
+</script>
+{% endblock %}

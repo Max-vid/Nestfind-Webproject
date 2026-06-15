@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>{% block title %}NestFind{% endblock %}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fraunces:ital,wght@0,700;0,900;1,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<link rel="stylesheet" href="/static/css/main.css"/>
+{% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="/" class="brand">
+    <div class="brand-mark">N</div>
+    <span class="brand-name">NestFind</span>
+  </a>
+  <div class="nav-links" id="navLinks">
+    <a href="/" class="nav-link {% if request.path=='/' %}active{% endif %}">Home</a>
+    <a href="/search" class="nav-link {% if '/search' in request.path %}active{% endif %}">Search</a>
+    {% if current_user.is_authenticated %}
+      {% if current_user.role == 'admin' %}
+        <a href="/admin/dashboard" class="nav-link">Admin</a>
+      {% elif current_user.role == 'owner' %}
+        <a href="/owner/dashboard" class="nav-link">My Listings</a>
+        <a href="/owner/property/add" class="nav-cta">+ List Property</a>
+      {% else %}
+        <a href="/wishlist" class="nav-link"><i class="fas fa-heart"></i> Saved</a>
+      {% endif %}
+      <div class="nav-user-pill">
+        <div class="user-dot">{{ current_user.name[0].upper() }}</div>
+        <span>{{ current_user.name.split()[0] }}</span>
+        <a href="/logout" class="logout-link">Sign out</a>
+      </div>
+    {% else %}
+      <a href="/login" class="nav-link">Login</a>
+      <a href="/register" class="nav-cta">Register</a>
+    {% endif %}
+  </div>
+  <button class="hamburger" onclick="document.getElementById('navLinks').classList.toggle('open')">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+<div id="flashContainer">
+  {% for cat, msg in messages %}
+  <div class="toast toast-{{ cat }}">
+    <i class="fas fa-{% if cat=='success' %}check-circle{% elif cat=='danger' %}exclamation-circle{% else %}info-circle{% endif %}"></i>
+    <span>{{ msg }}</span>
+    <button onclick="this.parentElement.remove()">×</button>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+{% endwith %}
+
+<main>{% block content %}{% endblock %}</main>
+
+<footer class="site-footer">
+  <div class="footer-grid">
+    <div class="footer-about">
+      <div class="brand"><div class="brand-mark">N</div><span class="brand-name">NestFind</span></div>
+      <p>AI-powered rental search platform. Find your perfect home through smart data mining algorithms.</p>
+    </div>
+    <div>
+      <h4>Platform</h4>
+      <a href="/search">Search Properties</a>
+      <a href="/register">List Your Property</a>
+      <a href="/login">Sign In</a>
+    </div>
+    <div>
+      <h4>Legal</h4>
+      <a href="#">Privacy Policy</a>
+      <a href="#">Terms of Use</a>
+      <a href="#">Help Center</a>
+    </div>
+  </div>
+  <div class="footer-bottom">© 2024 NestFind · Smart Rental Search Platform</div>
+</footer>
+
+<script src="/static/js/main.js"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

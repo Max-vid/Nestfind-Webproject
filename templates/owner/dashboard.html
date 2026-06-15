@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% block title %}Owner Dashboard — NestFind{% endblock %}
+{% block content %}
+<div class="page-banner"><div class="container">
+  <h1>My Property Dashboard</h1><p>Welcome back, {{ current_user.name }}</p>
+</div></div>
+<div class="container section">
+  <div class="stat-row">
+    <div class="stat-card"><div class="sc-n">{{ stats.total }}</div><div class="sc-l">Total Listings</div></div>
+    <div class="stat-card accent"><div class="sc-n">{{ stats.active }}</div><div class="sc-l">Active</div></div>
+    <div class="stat-card blue"><div class="sc-n">{{ stats.verified }}</div><div class="sc-l">Verified</div></div>
+    <div class="stat-card orange"><div class="sc-n">{{ stats.inquiries }}</div><div class="sc-l">Inquiries</div></div>
+    <div class="stat-card red"><div class="sc-n">{{ stats.unread }}</div><div class="sc-l">Unread</div></div>
+  </div>
+
+  <div class="two-col-layout">
+    <div>
+      <div class="panel-top"><h2>My Properties</h2><a href="/owner/property/add" class="btn-primary btn-sm">+ Add Property</a></div>
+      <div class="data-panel">
+        {% if properties %}
+        {% for p in properties %}
+        <div class="data-row">
+          <div class="dr-info">
+            <div class="dr-title">{{ p.title }}</div>
+            <div class="dr-meta">{{ p.city }} · ₹{{ "{:,.0f}".format(p.price) }}/mo · {{ p.bhk }} BHK</div>
+            <div class="dr-badges">
+              <span class="badge {% if p.is_active %}green{% else %}red{% endif %}">{{ 'Active' if p.is_active else 'Inactive' }}</span>
+              <span class="badge {% if p.is_verified %}blue{% else %}yellow{% endif %}">{{ 'Verified' if p.is_verified else 'Pending Review' }}</span>
+            </div>
+          </div>
+          <div class="dr-actions">
+            <a href="/owner/property/edit/{{ p.id }}" class="icon-btn"><i class="fas fa-edit"></i></a>
+            <form method="POST" action="/owner/property/delete/{{ p.id }}" style="display:inline" onsubmit="return confirm('Deactivate this listing?')">
+              <button type="submit" class="icon-btn del"><i class="fas fa-trash"></i></button>
+            </form>
+          </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <div class="empty-panel">
+          <p>No properties listed yet.</p>
+          <a href="/owner/property/add" class="btn-primary btn-sm mt1">Add Your First Property</a>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div>
+      <div class="panel-top"><h2>Tenant Inquiries</h2></div>
+      <div class="data-panel">
+        {% if inquiries %}
+        {% for inq in inquiries %}
+        <div class="data-row {% if not inq.is_read %}unread-row{% endif %}">
+          <div class="dr-info">
+            {% if not inq.is_read %}<span class="new-indicator">New</span>{% endif %}
+            <div class="dr-title">{{ inq.prop.title }}</div>
+            <div class="dr-meta">{{ inq.message[:80] }}{% if inq.message|length > 80 %}...{% endif %}</div>
+            <div class="dr-meta">{{ inq.created_at.strftime('%d %b %Y, %I:%M %p') }}</div>
+          </div>
+          {% if not inq.is_read %}
+          <form method="POST" action="/owner/inquiry/{{ inq.id }}/read">
+            <button type="submit" class="btn-sm btn-outline">Mark Read</button>
+          </form>
+          {% endif %}
+        </div>
+        {% endfor %}
+        {% else %}
+        <div class="empty-panel"><p>No inquiries yet.</p></div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

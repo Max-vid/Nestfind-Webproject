@@ -1,0 +1,35 @@
+{% extends 'superadmin/base.html' %}
+{% block title %}Super Admin Dashboard{% endblock %}
+{% block sa_content %}
+<h1 class="sa-title">Super Admin Dashboard</h1>
+<div class="sa-stats">
+  <div class="sa-sc"><div class="sn">{{ stats.total_users }}</div><div class="sl">Total Users</div></div>
+  <div class="sa-sc r"><div class="sn">{{ stats.blocked_users }}</div><div class="sl">Blocked</div></div>
+  <div class="sa-sc b"><div class="sn">{{ stats.owners }}</div><div class="sl">Owners</div></div>
+  <div class="sa-sc g"><div class="sn">{{ stats.tenants }}</div><div class="sl">Tenants</div></div>
+  <div class="sa-sc b"><div class="sn">{{ stats.total_properties }}</div><div class="sl">Properties</div></div>
+  <div class="sa-sc y"><div class="sn">{{ stats.hidden_properties }}</div><div class="sl">Hidden</div></div>
+  <div class="sa-sc g"><div class="sn">{{ stats.active_properties }}</div><div class="sl">Active</div></div>
+  <div class="sa-sc y"><div class="sn">{{ stats.unverified }}</div><div class="sl">Unverified</div></div>
+</div>
+<div class="sa-two-col">
+  <div class="sa-panel">
+    <div class="sa-panel-title">Recent Users</div>
+    {% for u in recent_users %}
+    <div class="sa-row">
+      <div><div class="sa-row-t">{{ u.name }}</div><div class="sa-row-s">{{ u.email }}</div></div>
+      <div>{% if u.is_blocked %}<span class="sa-badge r">Blocked</span>{% else %}<span class="sa-badge g">Active</span>{% endif %}</div>
+    </div>
+    {% endfor %}
+  </div>
+  <div class="sa-panel">
+    <div class="sa-panel-title">Recent Properties</div>
+    {% for p in recent_props %}
+    <div class="sa-row">
+      <div><div class="sa-row-t">{{ p.title[:30] }}</div><div class="sa-row-s">{{ p.city }} · ₹{{ "{:,.0f}".format(p.price) }}</div></div>
+      <div>{% if p.is_hidden %}<span class="sa-badge y">Hidden</span>{% elif p.is_active %}<span class="sa-badge g">Active</span>{% else %}<span class="sa-badge r">Off</span>{% endif %}</div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

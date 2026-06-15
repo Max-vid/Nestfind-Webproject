@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+{% block title %}{{ property.title }} — NestFind{% endblock %}
+{% block content %}
+<div class="container detail-container">
+  <div class="breadcrumb"><a href="/">Home</a> › <a href="/search">Search</a> › {{ property.title }}</div>
+
+  <div class="gallery">
+    {% if property.images %}
+      <div class="gallery-main"><img src="{{ property.images[0].url }}" alt="{{ property.title }}"></div>
+      <div class="gallery-side">
+        {% if property.images|length > 1 %}<img src="{{ property.images[1].url }}" alt="">{% else %}<div class="gph">🛋️</div>{% endif %}
+        {% if property.images|length > 2 %}<img src="{{ property.images[2].url }}" alt="">{% else %}<div class="gph">🛏️</div>{% endif %}
+      </div>
+    {% else %}
+      <div class="gallery-main gph-big">🏠</div>
+      <div class="gallery-side"><div class="gph">🛋️</div><div class="gph">🛏️</div></div>
+    {% endif %}
+  </div>
+
+  <div class="detail-layout">
+    <div class="detail-main">
+      <div class="detail-badges">
+        {% if property.is_verified %}<span class="badge green">✓ Verified</span>{% endif %}
+        {% if property.property_type %}<span class="badge gray">{{ property.property_type|capitalize }}</span>{% endif %}
+        {% if property.furnishing %}<span class="badge gray">{{ property.furnishing|capitalize }}</span>{% endif %}
+      </div>
+      <h1>{{ property.title }}</h1>
+      <p class="detail-loc"><i class="fas fa-map-marker-alt"></i> {{ property.location }}, {{ property.city }}{% if property.area %} · {{ property.area }}{% endif %}</p>
+      <div class="detail-price">₹{{ "{:,.0f}".format(property.price) }}<span> / month</span></div>
+
+      <div class="divider"></div>
+      <h3>About this Property</h3>
+      <p class="detail-desc">{{ property.description or 'No description provided.' }}</p>
+
+      <div class="divider"></div>
+      <h3>Key Details</h3>
+      <div class="kd-grid">
+        <div class="kd-item"><span>🛏️</span><strong>{{ property.bhk }} BHK</strong><small>Bedrooms</small></div>
+        {% if property.area_sqft %}<div class="kd-item"><span>📐</span><strong>{{ property.area_sqft|int }} sqft</strong><small>Area</small></div>{% endif %}
+        {% if property.furnishing %}<div class="kd-item"><span>🪑</span><strong>{{ property.furnishing|capitalize }}</strong><small>Furnishing</small></div>{% endif %}
+        {% if property.flooring %}<div class="kd-item"><span>🪵</span><strong>{{ property.flooring|capitalize }}</strong><small>Flooring</small></div>{% endif %}
+      </div>
+
+      <div class="divider"></div>
+      <h3>Amenities</h3>
+      <div class="amenity-chips">
+        {% set amenity_icons = [('balcony','door-open','Balcony'),('parking','car','Parking'),('lift','level-up-alt','Lift'),('security','shield-alt','Security'),('water_supply','tint','Water Supply'),('gym','dumbbell','Gym'),('swimming_pool','swimming-pool','Pool'),('wifi','wifi','WiFi'),('ac','snowflake','AC'),('power_backup','bolt','Power Backup')] %}
+        {% for key, icon, label in amenity_icons %}
+        {% if property[key] %}<span class="amenity-chip"><i class="fas fa-{{ icon }}"></i> {{ label }}</span>{% endif %}
+        {% endfor %}
+      </div>
+
+      <div class="divider"></div>
+      <h3>Tenant Preferences</h3>
+      <div class="pref-chips">
+        {% if property.family_allowed %}<span class="pchip g"><i class="fas fa-users"></i> Family OK</span>{% endif %}
+        {% if property.bachelor_allowed %}<span class="pchip g"><i class="fas fa-user"></i> Bachelor OK</span>{% endif %}
+        {% if property.pets_allowed %}<span class="pchip g"><i class="fas fa-paw"></i> Pets OK</span>{% endif %}
+        {% if property.veg_only %}<span class="pchip y">🥦 Veg Only</span>{% endif %}
+      </div>
+
+      <div class="divider"></div>
+      <h3>Reviews <span class="review-count">({{ reviews|length }})</span></h3>
+      {% if reviews %}{% for r in reviews %}
+      <div class="review-item">
+        <div class="review-head">
+          <div class="rv-avatar">{{ r.user_name[0].upper() }}</div>
+          <div><strong>{{ r.user_name }}</strong>
+            <div class="rv-stars">{% for i in range(r.rating) %}<i class="fas fa-star"></i>{% endfor %}</div>
+          </div>
+          <span class="rv-date">{{ r.date }}</span>
+        </div>
+        {% if r.comment %}<p class="rv-text">{{ r.comment }}</p>{% endif %}
+      </div>
+      {% endfor %}
+      {% else %}<p class="text-muted">No reviews yet. Be the first!</p>{% endif %}
+
+      {% if current_user.is_authenticated and current_user.role=='tenant' %}
+      <form method="POST" action="/review/{{ property.id }}" class="review-form">
+        <h4>Write a Review</h4>
+        <div class="fg"><label>Rating</label>
+          <select name="rating" class="fc" required>
+            <option value="5">★★★★★ Excellent</option>
+            <option value="4">★★★★ Good</option>
+            <option value="3">★★★ Average</option>
+            <option value="2">★★ Poor</option>
+            <option value="1">★ Terrible</option>
+          </select>
+        </div>
+        <div class="fg"><textarea name="comment" class="fc" rows="3" placeholder="Share your experience..."></textarea></div>
+        <button type="submit" class="btn-primary">Submit Review</button>
+      </form>
+      {% endif %}
+    </div>
+
+    <div class="detail-sidebar">
+      <div class="contact-box">
+        <h3>Contact Owner</h3>
+        <p>Listed by <strong>{{ property.owner_name }}</strong></p>
+        {% if current_user.is_authenticated and current_user.role=='tenant' %}
+        <textarea id="msgBox" class="fc" rows="4" placeholder="Hi, I am interested in this property..."></textarea>
+        <button class="btn-primary w100 mt1" onclick="sendMsg({{ property.id }})"><i class="fas fa-paper-plane"></i> Send Inquiry</button>
+        <div class="divider"></div>
+        <button id="wlBtn" class="{% if in_wishlist %}btn-danger{% else %}btn-outline{% endif %} w100" onclick="toggleWL({{ property.id }})">
+          <i class="fas fa-heart"></i> {% if in_wishlist %}Remove from Saved{% else %}Save Property{% endif %}
+        </button>
+        {% else %}
+        <a href="/login" class="btn-primary w100" style="text-align:center;display:block">Login to Contact</a>
+        {% endif %}
+        <div class="divider"></div>
+        <div class="contact-meta">
+          <div><i class="fas fa-calendar"></i> Listed {{ property.created_at }}</div>
+          <div><i class="fas fa-star" style="color:#f39c12"></i> {{ property.avg_rating }}/5 ({{ property.review_count }} reviews)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% if similar %}
+  <div class="divider"></div>
+  <h2>Similar Properties</h2>
+  <div class="cards-grid mt1">
+    {% for p in similar %}
+    <a href="/property/{{ p.id }}" class="prop-card">
+      <div class="pc-img">{% if p.images %}<img src="{{ p.images[0].url }}" alt="">{% else %}<div class="pc-img-ph">🏠</div>{% endif %}</div>
+      <div class="pc-body"><div class="pc-price">₹{{ "{:,.0f}".format(p.price) }}<span>/mo</span></div><h3>{{ p.title }}</h3><div class="pc-loc">{{ p.city }}</div></div>
+      <div class="pc-footer"><span class="pc-btn">View</span></div>
+    </a>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+<script>
+function toggleWL(id){
+  fetch('/wishlist/toggle/'+id,{method:'POST'}).then(r=>r.json()).then(d=>{
+    const b=document.getElementById('wlBtn');
+    if(d.status==='added'){b.className='btn-danger w100';b.innerHTML='<i class="fas fa-heart"></i> Remove from Saved';}
+    else{b.className='btn-outline w100';b.innerHTML='<i class="fas fa-heart"></i> Save Property';}
+  });
+}
+function sendMsg(id){
+  const m=document.getElementById('msgBox').value.trim();
+  if(!m){alert('Please write a message.');return;}
+  fetch('/api/contact',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({property_id:id,message:m})})
+    .then(r=>r.json()).then(d=>{if(d.status==='sent'){alert('Message sent! The owner will contact you.');document.getElementById('msgBox').value='';}});
+}
+</script>
+{% endblock %}

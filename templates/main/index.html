@@ -1,0 +1,210 @@
+{% extends 'base.html' %}
+{% block title %}NestFind — Find Your Perfect Rental{% endblock %}
+{% block content %}
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-text">
+      <span class="pill-badge">🏡 Rental Search Platform</span>
+      <h1>Find Your <em>Perfect</em><br>Rental Home</h1>
+      <p>Only real owner-listed properties. No fake listings. Find your perfect home based on your preferences.</p>
+
+      <form action="/search" method="GET" class="hero-search">
+        <div class="hs-field">
+          <i class="fas fa-map-marker-alt"></i>
+          <select name="city" id="heroCitySelect" onchange="heroUpdateAreas()">
+            <option value="">Select City</option>
+            {% for c in cities %}<option>{{ c }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="hs-field" id="heroAreaField" style="display:none;">
+          <i class="fas fa-location-arrow"></i>
+          <select name="area" id="heroAreaSelect">
+            <option value="">Any Area</option>
+          </select>
+        </div>
+        <div class="hs-field">
+          <i class="fas fa-bed"></i>
+          <select name="bhk">
+            <option value="">BHK Type</option>
+            <option value="1">1 BHK</option>
+            <option value="2">2 BHK</option>
+            <option value="3">3 BHK</option>
+            <option value="4">4+ BHK</option>
+          </select>
+        </div>
+        <div class="hs-field">
+          <i class="fas fa-rupee-sign"></i>
+          <select name="max_price">
+            <option value="">Max Budget</option>
+            <option value="8000">₹8,000/mo</option>
+            <option value="15000">₹15,000/mo</option>
+            <option value="25000">₹25,000/mo</option>
+            <option value="50000">₹50,000/mo</option>
+          </select>
+        </div>
+        <button type="submit" class="hs-btn"><i class="fas fa-search"></i> Search</button>
+      </form>
+      <script>
+      const heroCityAreas = {{ city_areas | tojson }};
+      function heroUpdateAreas() {
+        const city = document.getElementById('heroCitySelect').value;
+        const sel = document.getElementById('heroAreaSelect');
+        const wrap = document.getElementById('heroAreaField');
+        sel.innerHTML = '<option value="">Any Area</option>';
+        if (city && heroCityAreas[city] && heroCityAreas[city].length) {
+          heroCityAreas[city].forEach(a => {
+            const opt = document.createElement('option');
+            opt.value = a; opt.textContent = a;
+            sel.appendChild(opt);
+          });
+          wrap.style.display = '';
+        } else {
+          wrap.style.display = 'none';
+        }
+      }
+      </script>
+
+      <div class="hero-trust">
+        <div class="trust-item"><span class="trust-num">{{ total_listed }}</span> Active Listings</div>
+        <div class="trust-sep">·</div>
+        <div class="trust-item">Owner Verified</div>
+        <div class="trust-sep">·</div>
+        <div class="trust-item">Direct Contact</div>
+      </div>
+    </div>
+
+    <div class="hero-visual">
+      <div class="hv-card hv-main">
+        <div class="hvc-header">
+          <div class="hvc-dot green"></div>
+          <div class="hvc-dot orange"></div>
+          <div class="hvc-dot blue"></div>
+        </div>
+        <div class="hvc-icon">🏢</div>
+        <div class="hvc-title">Owner Listed Property</div>
+        <div class="hvc-sub">Verified · Active · Available</div>
+        <div class="hvc-price">₹XX,XXX/mo</div>
+      </div>
+      <div class="hv-card hv-float hv-top"><span>🏘️</span> Area Search</div>
+      <div class="hv-card hv-float hv-bottom"><span>✅</span> Admin Verified</div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURED PROPERTIES -->
+<section class="section">
+  <div class="container">
+    <div class="section-header">
+      <div>
+        <h2>Owner Listed Properties</h2>
+        <p>All properties below are directly listed by verified property owners</p>
+      </div>
+      <a href="/search" class="btn-secondary">View All <i class="fas fa-arrow-right"></i></a>
+    </div>
+
+    {% if featured %}
+    <div class="cards-grid">
+      {% for p in featured %}
+      <a href="/property/{{ p.id }}" class="prop-card">
+        <div class="pc-img">
+          {% if p.images %}<img src="{{ p.images[0].url }}" alt="{{ p.title }}">
+          {% else %}<div class="pc-img-ph">🏠</div>{% endif %}
+          <span class="pc-verified">✓ Verified</span>
+        </div>
+        <div class="pc-body">
+          <div class="pc-price">₹{{ "{:,.0f}".format(p.price) }}<span>/mo</span></div>
+          <h3>{{ p.title }}</h3>
+          <div class="pc-loc"><i class="fas fa-map-marker-alt"></i> {{ p.location }}</div>
+          <div class="pc-tags">
+            <span>{{ p.bhk }} BHK</span>
+            {% if p.property_type %}<span>{{ p.property_type|capitalize }}</span>{% endif %}
+            {% if p.furnishing %}<span>{{ p.furnishing|capitalize }}</span>{% endif %}
+          </div>
+          <div class="pc-chips">
+            {% if p.wifi %}<span title="WiFi"><i class="fas fa-wifi"></i></span>{% endif %}
+            {% if p.parking %}<span title="Parking"><i class="fas fa-car"></i></span>{% endif %}
+            {% if p.ac %}<span title="AC"><i class="fas fa-snowflake"></i></span>{% endif %}
+            {% if p.gym %}<span title="Gym"><i class="fas fa-dumbbell"></i></span>{% endif %}
+          </div>
+        </div>
+        <div class="pc-footer">
+          <div class="pc-owner"><i class="fas fa-user"></i> {{ p.owner_name }}</div>
+          <span class="pc-btn">View Details</span>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-hero">
+      <div class="eh-icon">🏗️</div>
+      <h3>No properties listed yet</h3>
+      <p>Be the first owner to list your property on NestFind!</p>
+      <a href="/register" class="btn-primary mt-2">Register as Owner</a>
+    </div>
+    {% endif %}
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="section bg-soft">
+  <div class="container">
+    <div class="section-header center">
+      <h2>How NestFind Works</h2>
+      <p>Simple, transparent, owner-driven listing platform</p>
+    </div>
+    <div class="how-grid">
+      <div class="how-step">
+        <div class="how-num">1</div>
+        <div class="how-icon">🏠</div>
+        <h3>Owner Lists</h3>
+        <p>Property owners register and list their properties with full details and photos.</p>
+      </div>
+      <div class="how-arrow">→</div>
+      <div class="how-step">
+        <div class="how-num">2</div>
+        <div class="how-icon">✅</div>
+        <h3>Admin Verifies</h3>
+        <p>Admin reviews and verifies each listing before it becomes publicly visible.</p>
+      </div>
+      <div class="how-arrow">→</div>
+      <div class="how-step">
+        <div class="how-num">3</div>
+        <div class="how-icon">🔍</div>
+        <h3>Tenant Searches</h3>
+        <p>Tenants apply filters by city, area, and preferences to find the best matching properties.</p>
+      </div>
+      <div class="how-arrow">→</div>
+      <div class="how-step">
+        <div class="how-num">4</div>
+        <div class="how-icon">🤝</div>
+        <h3>Connect Directly</h3>
+        <p>Tenant contacts owner directly through the platform. No middleman.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOR OWNERS -->
+<section class="section">
+  <div class="container">
+    <div class="owner-cta-band">
+      <div class="ocb-text">
+        <h2>Have a Property to Rent?</h2>
+        <p>List it for free. Reach thousands of verified tenants. Get noticed by serious renters.</p>
+        <div class="ocb-features">
+          <span>✓ Free Listing</span>
+          <span>✓ Direct Inquiries</span>
+          <span>✓ Full Dashboard</span>
+        </div>
+      </div>
+      <div class="ocb-actions">
+        <a href="/register" class="btn-primary btn-lg">Register as Owner</a>
+        <a href="/login" class="btn-ghost">Already have account? Login</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

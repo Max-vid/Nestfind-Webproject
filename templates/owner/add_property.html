@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% block title %}Add Property — NestFind{% endblock %}
+{% block content %}
+<div class="page-banner"><div class="container"><h1>List Your Property</h1><p>Fill in all details to get your property verified and listed</p></div></div>
+<div class="container form-container">
+
+  <form method="POST" enctype="multipart/form-data">
+    <div class="form-block">
+      <h3>Basic Information</h3>
+      <div class="fg"><label>Property Title *</label><input type="text" name="title" class="fc" placeholder="e.g. Spacious 2BHK in Koregaon Park" required></div>
+      <div class="fg"><label>Description</label><textarea name="description" class="fc" rows="3" placeholder="Describe the property, surroundings, nearby facilities..."></textarea></div>
+      <div class="form-row-2">
+        <div class="fg"><label>City *</label><input type="text" name="city" id="cityField" class="fc" placeholder="e.g. Nagpur" required oninput="updateAreaSuggestions()"></div>
+        <div class="fg"><label>Area / Locality *</label><input type="text" name="area" id="areaField2" class="fc" placeholder="e.g. Dharampeth, Sitabuldi, Wardha Road" required><small class="form-hint">Nearby area or locality in the city</small></div>
+        <div class="fg"><label>Full Address *</label><input type="text" name="location" class="fc" placeholder="Street, Area, City" required></div>
+      </div>
+    </div>
+
+    <div class="form-block">
+      <h3>Property Details</h3>
+      <div class="form-row-3">
+        <div class="fg"><label>Monthly Rent (₹) *</label><input type="number" name="price" id="priceField" class="fc" placeholder="15000" required></div>
+        <div class="fg"><label>BHK *</label>
+          <select name="bhk" id="bhkField" class="fc" required>
+            <option value="">Select</option><option value="1">1 BHK</option><option value="2">2 BHK</option><option value="3">3 BHK</option><option value="4">4+ BHK</option>
+          </select>
+        </div>
+        <div class="fg"><label>Area (sqft)</label><input type="number" name="area_sqft" id="areaField" class="fc" placeholder="900"></div>
+        <div class="fg"><label>Property Type</label>
+          <select name="property_type" class="fc">
+            <option value="">Select</option><option value="apartment">Apartment</option><option value="villa">Villa</option><option value="room">Room</option><option value="pg">PG</option>
+          </select>
+        </div>
+        <div class="fg"><label>Furnishing</label>
+          <select name="furnishing" id="furnField" class="fc">
+            <option value="unfurnished">Unfurnished</option><option value="semi">Semi-Furnished</option><option value="furnished">Furnished</option>
+          </select>
+        </div>
+        <div class="fg"><label>Available From</label><input type="date" name="available_from" class="fc"></div>
+      </div>
+    </div>
+
+    <div class="form-block">
+      <h3>Amenities</h3>
+      <div class="check-grid">
+        {% for am, lbl in [('balcony','🏞️ Balcony'),('parking','🚗 Parking'),('lift','🛗 Lift'),('security','🔒 Security'),('water_supply','💧 Water'),('gym','💪 Gym'),('swimming_pool','🏊 Pool'),('wifi','📶 WiFi'),('ac','❄️ AC'),('power_backup','⚡ Power Backup')] %}
+        <label class="check-opt"><input type="checkbox" name="{{ am }}"><span>{{ lbl }}</span></label>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="form-block">
+      <h3>Tenant Preferences</h3>
+      <div class="check-grid">
+        <label class="check-opt"><input type="checkbox" name="family_allowed" checked><span>👨‍👩‍👧 Family OK</span></label>
+        <label class="check-opt"><input type="checkbox" name="bachelor_allowed" checked><span>🧑 Bachelor OK</span></label>
+        <label class="check-opt"><input type="checkbox" name="pets_allowed"><span>🐾 Pets OK</span></label>
+        <label class="check-opt"><input type="checkbox" name="veg_only"><span>🥦 Veg Only</span></label>
+      </div>
+    </div>
+
+    <div class="form-block">
+      <h3>Property Photos</h3>
+      <p class="form-hint">Upload living room, bedroom, kitchen, bathroom photos for best results</p>
+      <div id="imgSlots">
+        <div class="img-upload-row">
+          <input type="file" name="images" accept="image/*" class="fc">
+          <input type="text" name="captions" class="fc" placeholder="Caption (e.g. Living Room)">
+        </div>
+      </div>
+      <button type="button" class="btn-outline btn-sm mt1" onclick="addImgRow()">+ Add More Photos</button>
+    </div>
+
+    <button type="submit" class="btn-primary btn-lg w100">Submit for Verification</button>
+    <p class="form-hint" style="text-align:center;">Your listing will be reviewed by admin before going live.</p>
+  </form>
+</div>
+<script>
+function addImgRow(){
+  const d=document.createElement('div');d.className='img-upload-row';
+  d.innerHTML='<input type="file" name="images" accept="image/*" class="fc"><input type="text" name="captions" class="fc" placeholder="Caption">';
+  document.getElementById('imgSlots').appendChild(d);
+}
+</script>
+{% endblock %}
